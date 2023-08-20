@@ -1,0 +1,74 @@
+#include <stdio.h>
+#include <string.h>
+#include <ctype.h>
+
+typedef void (*PseudoOpHandler)(const char *);
+
+void handle_org(const char *operands) {
+    printf("ORG %s\n", operands);
+}
+
+struct PseudoOpEntry {
+    const char *name;
+    PseudoOpHandler handler;
+};
+
+struct PseudoOpEntry pseudoOpTable[] = {
+    { "ORG", handle_org },
+};
+
+void trim_whitespace(char *str) {
+    // Trim leading whitespace
+    while (isspace((unsigned char)*str)) {
+        str++;
+    }
+
+    // Trim trailing whitespace
+    char *end = str + strlen(str) - 1;
+    while (end > str && isspace((unsigned char)*end)) {
+        end--;
+    }
+    *(end + 1) = '\0';
+}
+
+void assemble(const char *assemblyCode) {
+    char *code_copy = strdup(assemblyCode);  // Create a copy to avoid modifying the original
+
+    char *line = strtok(code_copy, "\n");
+
+    while (line != NULL) {
+        trim_whitespace(line);  // Trim whitespace from the line
+        if (strlen(line) > 0) { // Only process non-empty lines
+            char op[100];
+            char operands[100];
+
+            sscanf(line, "%s %[^\n]", op, operands);
+
+            int numPseudoOps = sizeof(pseudoOpTable) / sizeof(pseudoOpTable[0]);
+            for (int i = 0; i < numPseudoOps; i++) {
+                if (strcmp(pseudoOpTable[i].name, op) == 0) {
+                    pseudoOpTable[i].handler(operands);
+                    break;
+                }
+            }
+        }
+        line = strtok(NULL, "\n");
+    }
+
+    free(code_copy); // Free the allocated memory
+    printf("Assembly complete.\n");
+}
+
+int main() {
+    const char *assemblyCode =
+        "NOP\n"
+        "ORG 100\n"
+        "MOV R1, R2\n"
+        "ADD R3, R4\n"
+        "ORG 200\n"
+        "SUB R5, R6\n";
+
+    assemble(assemblyCode);
+
+    return 0;
+}

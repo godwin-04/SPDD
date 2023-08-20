@@ -1,0 +1,61 @@
+1. Write a program that prints the value of hinstance in a message box.
+
+#include <windows.h>
+int _stdcall WinMain (HINSTANCE hinstance, HINSTANCE hPrevinstance, LPSTR IpszCmdline, int
+nCmdShow)
+{
+char str[10];
+sprintf(str, "HINSTANCE Value: %d",hinstance);
+MessageBox(0,str, "Title",MB_OK);
+return 0;
+}
+
+
+2. Write a program that receives a number as command line argument and
+print its factorial value in a message box.
+
+#include <windows.h>
+int _stdcall WinMain(HINSTANCE hinstance, HINSTANCE hPrevinstance, LPSTR IpszCmdline, int
+nCmdShow){
+char str[10];
+int num,i,f=1;
+num = atoi(IpszCmdline);
+for(i =1;i <= num; i++){
+
+f= f*i;
+}
+sprintf(str,"Factorial of %d is: %d",num,f);
+MessageBox(0, str, "Factorial",MB_OK);
+return 0;
+}
+
+
+3. Write a program that receives a multiple word string as command line
+argument and print number of words in a message box.
+
+#include <windows.h>
+#include<stdio.h>
+int _stdcall WinMain(HINSTANCE hlnstance, HINSTANCE prelnstance, LPSTR IpszCmdline, int
+cmdshow)
+{
+
+char str[50];
+sprintf(str, "%s", IpszCmdline);
+int count=0, i=0;
+while(str[i]!='\0')
+{ if(str[i]==' ')
+{
+count++;
+}
+i++;
+}
+
+//printf("No of words=%d",count);
+sprintf(str, "%d",count);
+MessageBox(0,str, "No of Words", MB_OK);
+return 0;
+}
+
+
+
+

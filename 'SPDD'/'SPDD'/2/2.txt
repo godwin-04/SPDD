@@ -1,0 +1,153 @@
+2. Study of the creation of Window.
+a. Try to display a window with different combinations of window styles and
+observe the results.
+
+
+#include <windows.h>
+int _stdcall WinMain(HINSTANCE hinstance, HINSTANCE hPrevinstance, LPSTR IpszCmdline, int
+nCmdShow)
+{
+HWND h[5];
+h[0] = CreateWindow("BUTTON", "HSCROLL", WS_HSCROLL,10,10,150,100,0,0, hinstance,0);
+ShowWindow(h[0], nCmdShow);
+h[1] = CreateWindow("BUTTON", "MAXIMIZEBOX",WS_OVERLAPPEDWINDOW|WS_MAXIMIZEBOX,100,100,150,100,0, 0,hinstance, 0);
+ShowWindow(h [1], nCmdShow);
+h[2] = CreateWindow("BUTTON", "MINIMIZEBOx",WS_OVERLAPPEDWINDOW|WS_MINIMIZEBOX,200,200,150,100,0,0, hinstance,0);
+ShowWindow (h [2], nCmdShow);
+h[3] = CreateWindow("BUTTON","VSCROLL",WS_VSCROLL,300,300,150,100,0,0, hinstance,0);
+ShowWindow(h[3], nCmdShow);
+h[4] = CreateWindow("'BUTTON","SYSMENU",WS_SYSMENU,400,400,150,100,0, 0, hinstance,0);
+ShowWindow(h [4], nCmdShow);
+MessageBox(0,"hi","Waiting",MB_OK);
+    return 0;
+}
+
+
+b. Write a program, which receives an integer as a command line argument, creates
+an edit window, and based on the value of the integer displays a button window
+as maximized/minimized / normal.
+
+
+
+#include <windows.h>
+int _stdcall WinMain(HINSTANCE hinstance,HINSTANCE hPrevinstance,LPSTR IpszCmdline,int
+nCmdShow)
+{
+HWND h;
+int num;
+num = atoi(IpszCmdline);
+h= CreateWindow("Button","HIT ME",WS_OVERLAPPEDWINDOW,10,10,150,100,0,0, hinstance,0);
+switch(num){
+case 0:
+ShowWindow(h,SW_HIDE);
+break;
+case 1:
+ShowWindow(h,SW_NORMAL);
+break;
+case 2:
+ShowWindow(h,SW_MINIMIZE);
+break;
+case 3:
+ShowWindow(h,SW_MAXIMIZE);
+break;
+default:
+ShowWindow(h,SW_NORMAL);
+}
+MessageBox(0, "hi","Waiting",MB_OK);
+return 0;
+
+}
+
+
+
+c. Write a program to create a simple window. Add the Menu bar, Menu item &
+Submenus to the created Window application and write a program to add some
+functionalities to the created menu items like save or open, etc.
+
+
+#include <windows.h>
+WNDCLASS wc;
+#define ID_FILE_NEW 1
+#define ID_FILE_OPEN 2
+#define ID_FILE_EXIT 3
+void addMenu(HWND h);
+
+long _stdcall myfunc(HWND w, UINT x, UINT y, long z)
+{
+  switch (x)
+  {
+  case WM_DESTROY:
+    PostQuitMessage(0);
+    printf("Executed Successfully");
+    break;
+
+  case WM_CREATE:
+    addMenu(w);
+    break;
+
+  case WM_COMMAND:
+    switch (y)
+    {
+    case ID_FILE_NEW:
+      MessageBox(0, "New button clicked", "File", MB_OK);
+      break;
+
+    case ID_FILE_OPEN:
+      MessageBox(0, "Open button clicked", "File", MB_OK);
+      break;
+
+    case ID_FILE_EXIT:
+      MessageBox(0, "Exit button clicked", "File", MB_OK);
+      break;
+    }
+  default:
+    return DefWindowProc(w, x, y, z);
+  }
+  return 0;
+}
+
+void addMenu(HWND h)
+{
+  HMENU hMenubar;
+  HMENU hMenu, hMenu1;
+
+  hMenubar = CreateMenu();
+  hMenu = CreateMenu();
+
+  // hMenubar1 = CreateMenu();
+  hMenu1 = CreateMenu();
+  HMENU hSubMenu = CreatePopupMenu();
+
+  AppendMenuW(hMenu, MF_STRING | MF_POPUP, (UINT_PTR)hSubMenu, L"&New");
+  AppendMenuW(hSubMenu, MF_STRING, ID_FILE_NEW, L"Empty &File");
+  AppendMenuW(hSubMenu, MF_SEPARATOR, 0, NULL);
+  AppendMenuW(hSubMenu, MF_STRING, ID_FILE_NEW, L"Class..");
+  AppendMenuW(hMenu, MF_STRING, ID_FILE_OPEN, L"&Open");
+
+  AppendMenuW(hMenu, MF_SEPARATOR, 0, NULL);
+  AppendMenuW(hMenu, MF_STRING, ID_FILE_EXIT, L"&Quit");
+  AppendMenuW(hMenubar, MF_POPUP, (UINT_PTR)hMenu, L"&File");
+  AppendMenuW(hMenu1, MF_STRING, ID_FILE_EXIT, L"&Undo");
+  AppendMenuW(hMenubar, MF_POPUP, (UINT_PTR)hMenu1, L"&Edit");
+  SetMenu(h, hMenubar);
+}
+
+int __stdcall WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpszCmdline, int nCmdShow)
+{
+  HINSTANCE hinst;
+  HWND hwndMain;
+  MSG msg;
+  wc.lpfnWndProc = myfunc;
+  wc.hInstance = hInstance;
+  wc.lpszClassName = "Main Class";
+  wc.lpszMenuName = "First Menue";
+  RegisterClass(&wc);
+  hwndMain = CreateWindow("Main Class", "Name", WS_OVERLAPPEDWINDOW, 0, 0, 300, 300, 0, 0, hInstance, 0);
+  ShowWindow(hwndMain, SW_NORMAL);
+  while (GetMessage(&msg, 0, 0, 0))
+  {
+    DispatchMessage(&msg);
+  }
+  return 0;
+}
+

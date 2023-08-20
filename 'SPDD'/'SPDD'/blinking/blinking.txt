@@ -1,0 +1,20 @@
+#include <stdio.h>
+#include <unistd.h>
+
+int main() {
+    int numDots = 40;
+    int blinkDelay = 500000; // Delay in microseconds
+
+    for (int i = 0; i < numDots; i++) {
+        printf(".");
+        fflush(stdout); // Flush the output buffer to immediately display the dot
+        usleep(blinkDelay); // Delay for blinking
+        printf("\b \b"); // Erase the dot by printing backspaces and spaces
+        fflush(stdout); // Flush again to immediately clear the dot
+        usleep(blinkDelay); // Delay for blinking
+    }
+
+    printf("\n");
+
+    return 0;
+}

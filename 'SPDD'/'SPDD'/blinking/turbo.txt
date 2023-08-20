@@ -1,0 +1,27 @@
+#include <dos.h>
+#include <conio.h>
+#include <stdio.h>
+
+void sleepMillis(int milliseconds) {
+    delay(milliseconds);
+}
+
+int main() {
+    int numDots = 40;
+    int delayAmount = 500; // milliseconds
+    int i; // Declare i here
+
+    clrscr(); // Clear the screen
+
+    for (i = 0; i < numDots; ++i) {
+        gotoxy(i, 10);
+        putch('.');
+        sleepMillis(delayAmount);
+
+        gotoxy(i, 10);
+        putch(' ');
+        sleepMillis(delayAmount);
+    }
+
+    return 0;
+}

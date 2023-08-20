@@ -1,0 +1,20 @@
+#include <windows.h>
+#include <stdio.h>
+
+int main(int argc, char* argv[]) {
+    char message[4096]; // A buffer to hold the message
+
+    // Initialize the message with the program name (file name)
+    snprintf(message, sizeof(message), "Command Line Arguments:\n%s", argv[0]);
+
+    // Append the rest of the command-line arguments
+    for (int i = 1; i < argc; i++) {
+        strncat(message, "\n", sizeof(message) - strlen(message) - 1); // Add a newline
+        strncat(message, argv[i], sizeof(message) - strlen(message) - 1); // Append the argument
+    }
+
+    // Display the message box
+    MessageBox(NULL, message, "Command Line Arguments", MB_ICONINFORMATION);
+
+    return 0;
+}

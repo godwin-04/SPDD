@@ -1,0 +1,227 @@
+#include <stdio.h>
+#include <stdlib.h>
+#include <string.h>
+
+#define MAX_SIZE 100
+
+typedef struct {
+    char mnemonic[10];
+    char opcode[3];
+} MachineOp;
+
+typedef struct {
+    char mnemonic[10];
+    char opcode[3];
+} PseudoOp;
+
+typedef struct {
+    char literal[10];
+    char address[4];
+} Literal;
+
+typedef struct {
+    char symbol[10];
+    char address[4];
+} Symbol;
+
+void build_machine_op_table(MachineOp mot[], int *motSize) {
+    // Define machine operations and their opcodes
+    MachineOp add = {"ADD", "01"};
+    MachineOp sub = {"SUB", "02"};
+    MachineOp load = {"LOAD", "03"};
+    MachineOp store = {"STORE", "04"};
+    // Add more machine operations as needed
+
+    // Add machine operations to MOT
+    mot[0] = add;
+    mot[1] = sub;
+    mot[2] = load;
+    mot[3] = store;
+    // Add more machine operations as needed
+
+    *motSize = 4; // Update MOT size accordingly
+}
+
+void build_pseudo_op_table(PseudoOp pot[], int *potSize) {
+    // Define pseudo-operations and their opcodes
+    PseudoOp start = {"START", "01"};
+    PseudoOp end = {"END", "02"};
+    PseudoOp reserve = {"RESERVE", "03"};
+    // Add more pseudo-operations as needed
+
+    // Add pseudo-operations to POT
+    pot[0] = start;
+    pot[1] = end;
+    pot[2] = reserve;
+    // Add more pseudo-operations as needed
+
+    *potSize = 3; // Update POT size accordingly
+}
+
+void add_to_literal_table(Literal lt[], int *ltSize, char *literal) {
+    // Check if the literal is already present in the Literal Table
+    for (int i = 0; i < *ltSize; i++) {
+        if (strcmp(lt[i].literal, literal) == 0) {
+            return; // Literal already exists, no need to add
+        }
+    }
+
+    // Add the literal to the Literal Table
+    strcpy(lt[*ltSize].literal, literal);
+    sprintf(lt[*ltSize].address, "L%02d", *ltSize + 1);
+
+    (*ltSize)++;
+}
+
+void add_to_symbol_table(Symbol st[], int *stSize, char symbol[], char location[]) {
+    for (int i = 0; i < *stSize; i++) {
+        if (strcmp(st[i].symbol, symbol) == 0) {
+            return; // Symbol already exists in ST
+        }
+    }
+
+    Symbol newSymbol;
+    strcpy(newSymbol.symbol, symbol);
+    strcpy(newSymbol.address, location);
+    st[*stSize] = newSymbol;
+
+    (*stSize)++; // Increment ST size
+}
+
+void process_input_file(char filename[], MachineOp mot[], int motSize, PseudoOp pot[], int potSize,
+                        Literal lt[], int *ltSize, Symbol st[], int *stSize) {
+    FILE *file = fopen(filename, "r");
+    if (file == NULL) {
+        printf("Error: Could not open input file\n");
+        return;
+    }
+
+    char line[MAX_SIZE];
+
+    while (fgets(line, sizeof(line), file)) {
+        line[strcspn(line, "\r\n")] = '\0'; // Remove newline character
+
+        if (line[0] == '\0' || line[0] == ';') {
+            continue;
+        }
+
+        // Split the line into label, mnemonic, and operand
+        char *label = NULL;
+        char *mnemonic = NULL;
+        char *operand = NULL;
+
+        label = strtok(line, " \t");
+        mnemonic = strtok(NULL, " \t");
+        operand = strtok(NULL, " \t");
+
+        // Process label, if present
+        if (label != NULL) {
+            add_to_symbol_table(st, stSize, label, ""); // Pass empty location for now
+        }
+
+        // Process mnemonic and operand
+        if (mnemonic != NULL) {
+            // Check if mnemonic is in MOT
+            int foundMnemonic = 0;
+            for (int i = 0; i < motSize; i++) {
+                if (strcmp(mot[i].mnemonic, mnemonic) == 0) {
+                    foundMnemonic = 1;
+                    break;
+                }
+            }
+
+            if (foundMnemonic) {
+                // Update location for machine operations
+                char location[4];
+                sprintf(location, "%02X", *ltSize + *stSize);
+                add_to_symbol_table(st, stSize, "", location);
+            } else {
+                // Check if mnemonic is in POT
+                int foundPseudo = 0;
+
+                for (int i = 0; i < potSize; i++) {
+                    if (strcmp(pot[i].mnemonic, mnemonic) == 0) {
+                        foundPseudo = 1;
+                        break;
+                    }
+                }
+
+                if (foundPseudo) {
+                    // Process operand for RESERVE pseudo-operation
+                    if (strcmp(mnemonic, "RESERVE") == 0 && operand != NULL) {
+                        int reserveSize = atoi(operand);
+
+                        // Update location for RESERVE pseudo-operation
+                        char location[4];
+                        sprintf(location, "%02X", *ltSize + *stSize + reserveSize);
+                        add_to_symbol_table(st, stSize, "", location);
+                    }
+                } else {
+                    // Process operand if it is a literal
+                    if (operand != NULL && operand[0] == '=') {
+                        add_to_literal_table(lt, ltSize, operand);
+                    } else {
+                        printf("Error: Unknown mnemonic '%s'\n", mnemonic);
+                    }
+                }
+            }
+        }
+    }
+
+    fclose(file);
+}
+
+void display_tables(MachineOp mot[], int motSize, PseudoOp pot[], int potSize, Literal lt[], int ltSize,
+                    Symbol st[], int stSize) {
+    printf("Machine-Op Table (MOT):\n");
+    for (int i = 0; i < motSize; i++) {
+        printf("%s : %s\n", mot[i].mnemonic, mot[i].opcode);
+    }
+    printf("\n");
+
+    printf("Pseudo-Op Table (POT):\n");
+    for (int i = 0; i < potSize; i++) {
+        printf("%s : %s\n", pot[i].mnemonic, pot[i].opcode);
+    }
+    printf("\n");
+
+    printf("Literal Table (LT):\n");
+    for (int i = 0; i < ltSize; i++) {
+        printf("%s : %s\n", lt[i].literal, lt[i].address);
+    }
+    printf("\n");
+
+    printf("Symbol Table (ST):\n");
+    for (int i = 0; i < stSize; i++) {
+        printf("%s : %s\n", st[i].symbol, st[i].address);
+    }
+}
+
+int main() {
+
+    MachineOp mot[MAX_SIZE];
+    int motSize = 0;
+    PseudoOp pot[MAX_SIZE];
+    int potSize = 0;
+    Literal lt[MAX_SIZE];
+    int ltSize = 0;
+    Symbol st[MAX_SIZE];
+    int stSize = 0;
+
+    // Build MOT and POT
+    build_machine_op_table(mot, &motSize);
+    build_pseudo_op_table(pot, &potSize);
+
+    printf("Enter the input file name: ");
+    char filename[MAX_SIZE];
+    fgets(filename, sizeof(filename), stdin);
+    filename[strcspn(filename, "\r\n")] = '\0'; // Remove newline character
+
+    // Process input file
+    process_input_file(filename, mot, motSize, pot, potSize, lt, &ltSize, st, &stSize);
+
+    // Display tables
+    display_tables(mot, motSize, pot, potSize, lt, ltSize, st, stSize);
+
+    return 0;
+}
